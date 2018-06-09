@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QFileDialog, QGridLayout,QLabel, QLineEdit,
                              QPushButton,QTreeWidget,QTreeWidgetItem,QTreeWidgetItemIterator,
                              QStyledItemDelegate,QTabWidget,
                              QCheckBox, QTableWidget, QTableWidgetItem,QVBoxLayout, QWidget)
-import Feeders #,Find_Tx
+import Feeders ,Controler
 
 class FindFeeder(QWidget):
     def __init__(self, parent = None):
@@ -153,10 +153,9 @@ class OutTab(QWidget):
                     child.setText(2, '无法定位')
                 else:
                     child.setText(2, '已定位')
-                    # strRfID = self.editRfID.text()
-                    # tx = Find_Tx.Tx()
-                    # tx.FindID(strRfID)
-                    # del tx
+                    strRfID = child.text(1)
+                    finder = Controler.Controler()
+                    finder.FindID(strRfID)
 
     def removeID(self):
         flag = True

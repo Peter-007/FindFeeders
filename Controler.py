@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import serial, time
 
-class Tx():
+class Controler():
     def __init__(self):
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
@@ -33,7 +33,7 @@ class Tx():
 
 
 if __name__ == '__main__':
-    tx = Tx()
+    tx = Controler()
     tx.FindID('0001')
     tx.FindID('0002')
     tx.FindID('0003')
