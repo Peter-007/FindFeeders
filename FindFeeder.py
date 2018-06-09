@@ -19,7 +19,8 @@ class FindFeeder(QWidget):
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(tabWidget)
         self.setLayout(mainLayout)
-        self.setWindowTitle("Find FEEDER")
+        self.setWindowTitle("Feeder定位助手")
+        self.resize(640,480)
 
 class InTab(QWidget):
     def __init__(self, parent=None):
@@ -84,7 +85,7 @@ class OutTab(QWidget):
         self.buttonLocate = QPushButton("定位")
         self.buttonOut = QPushButton("出库")
 
-        lableSapIDList = QLabel("物料ID列表:")
+        lableSapIDList = QLabel("物料列表:")
         self.tree = QTreeWidget()
         self.tree.setColumnCount(3)
         self.tree.setHeaderLabels(['物料ID','标签ID','状态'])
