@@ -6,30 +6,7 @@ from PyQt5.QtWidgets import (QFileDialog, QGridLayout,QLabel, QLineEdit,
                              QPushButton,QTreeWidget,QTreeWidgetItem,QTreeWidgetItemIterator,
                              QStyledItemDelegate,QTabWidget,
                              QCheckBox, QTableWidget, QTableWidgetItem,QVBoxLayout, QWidget)
-
-import Feeders
-#import Find_Tx
-
-class CheckBoxDelegate(QStyledItemDelegate):
-    def createEditor(self, parent, option, index):
-        editor = QCheckBox(parent)
-        editor.setChecked(True)
-
-        return editor
-
-    def setEditorData(self, checkBox, index):
-        value = index.model().data(index, Qt.EditRole)
-        value = bool(value)
-        checkBox.setChecked(value)
-
-    def setModelData(self, checkBox, model, index):
-        value = checkBox.isChecked()
-
-        model.setData(index, value, Qt.EditRole)
-
-    def updateEditorGeometry(self, editor, option, index):
-        editor.setGeometry(option.rect)
-
+import Feeders #,Find_Tx
 
 class FindFeeder(QWidget):
     def __init__(self, parent = None):
@@ -108,15 +85,9 @@ class OutTab(QWidget):
         self.buttonOut = QPushButton("出库")
 
         lableSapIDList = QLabel("物料ID列表:")
-        self.tableSapIdList = QTableWidget(0,3)
-        self.tableSapIdList.setHorizontalHeaderLabels(['物料ID','标签ID','状态'])
-        self.tableSapIdList.resizeColumnsToContents()
-        self.delegate = CheckBoxDelegate()
-        self.tableSapIdList.setItemDelegate(self.delegate)
-
         self.tree = QTreeWidget()
         self.tree.setColumnCount(3)
-        self.tree.setHeaderLabels(["Key","Value","state"])
+        self.tree.setHeaderLabels(['物料ID','标签ID','状态'])
 
         self.buttonImport.clicked.connect(self.importSapIDs)
         self.buttonLocate.clicked.connect(self.Locate)
@@ -129,7 +100,6 @@ class OutTab(QWidget):
         mainLayout.addWidget(lableSapIDList, 1, 0, Qt.AlignTop)
         mainLayout.addWidget(self.buttonLocate, 1, 2, Qt.AlignTop)
         mainLayout.addWidget(self.buttonOut, 2, 2, Qt.AlignTop)
-        #mainLayout.addWidget(self.tableSapIdList, 1, 1, 5, 1)
         mainLayout.addWidget(self.tree, 1, 1, 9, 1 )
 
         self.setLayout(mainLayout)
@@ -157,8 +127,6 @@ class OutTab(QWidget):
         self.editFilePath.setText(fileName)
         listID = self.GetSapIDs(fileName)
         iLength = len(listID)
-
-        self.tableSapIdList.setRowCount(iLength)
         self.feeders = Feeders.Feeders()
 
         self.root = QTreeWidgetItem(self.tree)
@@ -184,6 +152,10 @@ class OutTab(QWidget):
                     child.setText(2, '无法定位')
                 else:
                     child.setText(2, '已定位')
+                    # strRfID = self.editRfID.text()
+                    # tx = Find_Tx.Tx()
+                    # tx.FindID(strRfID)
+                    # del tx
 
     def removeID(self):
         flag = True
@@ -196,47 +168,6 @@ class OutTab(QWidget):
                     self.feeders.remove(child.text(1))
                     flag = True
                     break
-
-
-
-    def importSapIDs_1(self):
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(self,
-            "QFileDialog.getOpenFileName()", self.editFilePath.text(),
-            "Text Files (*.txt)", options=options)
-        if not fileName: return
-
-        self.editFilePath.setText(fileName)
-        listID = self.GetSapIDs(fileName)
-        iLength = len(listID)
-
-        self.tableSapIdList.setRowCount(iLength)
-        feeders = Feeders.Feeders()
-
-        for i in range(iLength):
-            SapID = listID[i]
-            RfID = feeders.findFeeder(SapID)
-            self.tableSapIdList.setItem(i, 0, QTableWidgetItem(SapID))
-            self.tableSapIdList.setItem(i, 1, QTableWidgetItem(RfID))
-
-        self.tableSapIdList.resizeColumnsToContents()
-
-
-    def Locate_1(self):
-        for i in range(self.tableSapIdList.rowCount()):
-            if (self.tableSapIdList.item(i, 1).text() == 'N/A'): continue
-            self.tableSapIdList.selectRow(i)
-            self.tableSapIdList.setItem(i, 2, QTableWidgetItem('定位中'))
-            self.tableSapIdList.resizeColumnsToContents()
-            QApplication.processEvents()
-            time.sleep(0.2)
-            self.tableSapIdList.setItem(i, 2, QTableWidgetItem('已定位'))
-            self.tableSapIdList.resizeColumnsToContents()
-
-        #strRfID = self.editRfID.text()
-        #tx = Find_Tx.Tx()
-        #tx.FindID(strRfID)
-        #del tx
 
 if __name__ == '__main__':
     import sys
