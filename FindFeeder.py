@@ -3,18 +3,16 @@
 import re, time
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QFileDialog, QGridLayout,QLabel, QLineEdit,
-                             QPushButton,QTreeWidget,QTreeWidgetItem,QTreeWidgetItemIterator,
-                             QStyledItemDelegate,QTabWidget,
-                             QCheckBox, QTableWidget, QTableWidgetItem,QVBoxLayout, QWidget)
-import Feeders ,Controler
+                             QPushButton,QTreeWidget,QTreeWidgetItem,QTabWidget,
+                             QTableWidget, QTableWidgetItem,QVBoxLayout, QWidget)
+import Feeders #, Controler
 
 class FindFeeder(QWidget):
     def __init__(self, parent = None):
         super(FindFeeder, self).__init__(parent)
-
         tabWidget = QTabWidget()
-        tabWidget.addTab(InTab(), "入库")
         tabWidget.addTab(OutTab(), "出库")
+        tabWidget.addTab(InTab(), "入库")
 
         mainLayout = QVBoxLayout()
         mainLayout.addWidget(tabWidget)
@@ -25,7 +23,6 @@ class FindFeeder(QWidget):
 class InTab(QWidget):
     def __init__(self, parent=None):
         super(InTab, self).__init__(parent)
-        self.feeders = Feeders.Feeders()
         
         lableRfID = QLabel("标签ID:")
         self.editRfID = QLineEdit()
@@ -34,12 +31,15 @@ class InTab(QWidget):
 
         lableSapID = QLabel("物料ID:")
         self.editSapID = QLineEdit()
+        self.editSapID.setMaxLength(16)
+        self.buttonUpdate = QPushButton("刷新")
 
         lableList = QLabel("库存列表:")
         self.tableList = QTableWidget(0,2)
         self.tableList.setHorizontalHeaderLabels(['标签ID', '物料ID'])
 
         self.buttonSave.clicked.connect(self.save)
+        self.buttonUpdate.clicked.connect(self.update)
 
         mainLayout = QGridLayout()
         mainLayout.addWidget(lableRfID, 0, 0)
@@ -47,6 +47,7 @@ class InTab(QWidget):
         mainLayout.addWidget(self.buttonSave, 0, 2)
         mainLayout.addWidget(lableSapID, 1, 0)
         mainLayout.addWidget(self.editSapID, 1, 1)
+        mainLayout.addWidget(self.buttonUpdate, 1, 2)
         mainLayout.addWidget(lableList, 2, 0, Qt.AlignTop)
         mainLayout.addWidget(self.tableList, 2, 1)
 
@@ -54,7 +55,8 @@ class InTab(QWidget):
         self.update()
         
     def update(self):
-        d = self.feeders.dict_Feeders
+        feeders = Feeders.Feeders()
+        d = feeders.dict_Feeders
         self.tableList.setRowCount(0)
         for k in sorted(d.keys()):
             self.tableList.insertRow(0)
@@ -64,20 +66,19 @@ class InTab(QWidget):
         self.tableList.resizeColumnsToContents()
         
     def save(self):
+        feeders = Feeders.Feeders()
         strRfID = self.editRfID.text()
         strSapID = self.editSapID.text()
         if (strSapID.strip() == "") or (strSapID == ""): return
-        self.feeders.insert(strRfID, strSapID)
+        feeders.insert(strRfID, strSapID)
 
         self.editRfID.setText("")
         self.editSapID.setText("")
         self.update()
 
-
 class OutTab(QWidget):
     def __init__(self, parent=None):
         super(OutTab, self).__init__(parent)
-
 
         lableFilePath = QLabel("物料文件：")
         self.editFilePath = QLineEdit()
@@ -104,7 +105,7 @@ class OutTab(QWidget):
         mainLayout.addWidget(self.tree, 1, 1, 9, 1 )
 
         self.setLayout(mainLayout)
-
+        #self.finder = Controler.Controler()
 
     def GetSapIDs(self,strFilePath):
         listID = []
@@ -128,13 +129,13 @@ class OutTab(QWidget):
         self.editFilePath.setText(fileName)
         listID = self.GetSapIDs(fileName)
         iLength = len(listID)
-        self.feeders = Feeders.Feeders()
-
+        feeders = Feeders.Feeders()
+        self.tree.clear()
         self.root = QTreeWidgetItem(self.tree)
-        self.root.setText(0, 'SAP ID')
+        self.root.setText(0, fileName.split('/')[-1])
         for i in range(iLength):
             SapID = listID[i]
-            RfID = self.feeders.findFeeder(SapID)
+            RfID = feeders.findFeeder(SapID)
             id = QTreeWidgetItem(self.root)
             id.setText(0, SapID)
             id.setText(1, RfID)
@@ -144,6 +145,13 @@ class OutTab(QWidget):
         self.tree.expandAll()
         self.tree.resizeColumnToContents(0)
         self.root.sortChildren(1, 0)
+        self.AutoSelect()
+
+    def AutoSelect(self):
+        for i in range(self.root.childCount()):
+            child = self.root.child(i)
+            if child.text(1) != 'N/A':
+                child.setCheckState(0, 2)
 
     def Locate(self):
         for i in range(self.root.childCount()):
@@ -153,9 +161,13 @@ class OutTab(QWidget):
                     child.setText(2, '无法定位')
                 else:
                     child.setText(2, '已定位')
+                    child.setSelected(True)
+                    QApplication.processEvents()
                     strRfID = child.text(1)
-                    finder = Controler.Controler()
-                    finder.FindID(strRfID)
+                    #self.finder.FindID(strRfID)
+                    time.sleep(0.2)
+                    child.setSelected(False)
+                    child.setText(2, '待定位')
 
     def removeID(self):
         flag = True
@@ -164,10 +176,15 @@ class OutTab(QWidget):
             for i in range(self.root.childCount()):
                 child = self.root.child(i)
                 if child.checkState(0):
+                    feeders = Feeders.Feeders()
+                    strRfID = child.text(1)
+                    #self.finder.FindID(strRfID, False)
                     self.root.removeChild(child)
-                    self.feeders.remove(child.text(1))
+                    feeders.remove(strRfID)
                     flag = True
                     break
+
+        self.AutoSelect()
 
 if __name__ == '__main__':
     import sys

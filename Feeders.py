@@ -74,8 +74,6 @@ class Feeders():
 
         if len(self.dict_Feeders) == 0:
             print("The file you are attempting to open contains no data.")
-        else:
-            print(self.dict_Feeders)
 
 
     def FakeFeeders(self):

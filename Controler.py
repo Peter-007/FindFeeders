@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import RPi.GPIO as GPIO
 import serial, time
 
@@ -6,17 +8,18 @@ class Controler():
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup((11,12,13),GPIO.OUT)
-        p = GPIO.PWM(11, 2)
-        p.start(50)
+        GPIO.output((12,13), 0)
+        time.sleep(0.3)
         
-        self.ser=serial.Serial('/dev/ttyUSB0',9600,timeout=3)
+        self.ser=serial.Serial('/dev/ttyUSB0',9600,timeout=2)
         print(self.ser.isOpen())
 
     def __del__(self):
         self.ser.close()
         GPIO.cleanup()
 
-    def SendCmd(self, strCmd):                
+    def SendCmd(self, strCmd, bOpen=True):
+        GPIO.output(11, 1)
         GPIO.output((12,13), 0)
         time.sleep(0.5)
         strCmd = strCmd + '\r\n'
@@ -24,20 +27,34 @@ class Controler():
         self.ser.write(strCmd.encode())
         strRead = self.ser.readline()
         print('Read:' + strRead.decode())
-        time.sleep(0.5)
         GPIO.output((12,13), 1)
-        time.sleep(1)
+        time.sleep(0.1)
         
-    def FindID(self, strID):
-        self.SendCmd('AT+DVID' + strID)
-
+        for i in range(1):            
+            GPIO.output(11, 0)
+            time.sleep(0.1)
+            GPIO.output(11, 1)
+            time.sleep(0.1)
+            
+            if bOpen:
+                GPIO.output(11, 0)
+                time.sleep(0.1)
+        
+    def FindID(self, strID, bOpen=True):
+        #self.SendCmd('AT+CLSS')
+        self.SendCmd('AT+DVID' + strID, bOpen)
 
 if __name__ == '__main__':
     tx = Controler()
-    tx.FindID('0001')
-    tx.FindID('0002')
-    tx.FindID('0003')
-    del tx
+    for i in range(1):
+        print("****Open****")
+        for i in range(9):
+            tx.FindID('01' + '{:0>2d}'.format(i+1))
+
+        print("****Close****")
+        for i in range(9):
+            tx.FindID('01' + '{:0>2d}'.format(i+1), False)
+
 
 
 
