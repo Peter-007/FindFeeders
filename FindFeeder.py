@@ -20,6 +20,7 @@ class FindFeeder(QWidget):
         self.setWindowTitle("Feeder定位助手")
         self.resize(640,480)
 
+# 入库模块
 class InTab(QWidget):
     def __init__(self, parent=None):
         super(InTab, self).__init__(parent)
@@ -76,6 +77,7 @@ class InTab(QWidget):
         self.editSapID.setText("")
         self.update()
 
+# 出库模块
 class OutTab(QWidget):
     def __init__(self, parent=None):
         super(OutTab, self).__init__(parent)
@@ -107,6 +109,7 @@ class OutTab(QWidget):
         self.setLayout(mainLayout)
         #self.finder = Controler.Controler()
 
+    #从指定的物料清单文件中解析出物料编码列表
     def GetSapIDs(self,strFilePath):
         listID = []
         with open(strFilePath, 'r') as f:
@@ -119,6 +122,7 @@ class OutTab(QWidget):
             listID.append(strID)
         return listID
 
+    #打开物料清单文件，解析后显示在树形控件中
     def importSapIDs(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self,
