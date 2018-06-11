@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+#接线端子定义
+# 无线模块   树莓派
+#   IO-0    pin11
+#   set     pin12
+#   cs      pin13
+
 import RPi.GPIO as GPIO
 import serial, time
 
